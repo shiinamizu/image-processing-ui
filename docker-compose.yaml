@@ -1,0 +1,49 @@
+services:
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app:cached
+    tty: true
+    command: sh -c "npm run dev"
+    ports:
+      - '3000:3000'
+
+
+  backend: 
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8080:8080"
+    # tty: true
+    command: sh -c "ls && uvicorn main:app --reload --host 0.0.0.0 --port 8080"
+    depends_on:
+       - db
+    environment:
+       DB_USER: ${DB_USER}
+       DB_PASS: ${DB_PASS}
+       DB_HOST: db
+       DB_NAME: ${DB_NAME}
+       TZ: Asia/Tokyo
+  db:
+    image: mysql
+    ports:
+      - 3306:3306
+    volumes:
+      - ./backend/repository/mysql/sql:/docker-entrypoint-initdb.d
+      - db-data:/var/lib/mysql 
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ROOT_PASS}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      TZ: Asia/Tokyo
+volumes:
+  db-data:
+
+
+
+
